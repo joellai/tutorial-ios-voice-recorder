@@ -53,7 +53,8 @@ class ViewController: UIViewController {
     
     @IBAction func recordButtonPressed(_ sender: UIButton) {
         if audioRecorder == nil {
-            startRecording()
+//            startRecording()
+            startRecordingv1()
         } else {
             finishRecording(success: true)
         }
@@ -90,6 +91,37 @@ class ViewController: UIViewController {
             finishRecording(success: false)
         }
     }
+    
+    func startRecordingv1() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetooth])
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to set up audio session: \(error)")
+            return
+        }
+        
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+        
+        let settings: [String: Any] = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: 12000,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
+        ]
+        
+        do {
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder.delegate = self
+            audioRecorder.record()
+            
+            recordButton.setTitle("Tap to Stop", for: .normal)
+        } catch {
+            finishRecording(success: false)
+        }
+    }
+
     
     func finishRecording(success: Bool) {
         audioRecorder.stop()
